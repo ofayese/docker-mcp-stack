@@ -51,14 +51,14 @@ git clone https://github.com/yourusername/docker-mcp-stack.git
 cd docker-mcp-stack
 ```bash
 
-2. **Configure environment variables**
+1. **Configure environment variables**
 
 ```bash
 cp .env.example .env
 # Edit .env with your preferred settings
 ```bash
 
-3. **Docker Hub Authentication (Optional)**
+1. **Docker Hub Authentication (Optional)**
 
 For private images or to avoid rate limits, add your Docker Hub credentials:
 
@@ -74,13 +74,13 @@ You can authenticate manually with:
 make docker-login
 ```bash
 
-4. **Pull model images**
+1. **Pull model images**
 
 ```bash
 make pull-models
 ```bash
 
-5. **Start the stack**
+1. **Start the stack**
 
 ```bash
 # Start with basic services
@@ -90,7 +90,7 @@ make start
 make start-all
 ```bash
 
-6. **Verify installation**
+1. **Verify installation**
 
 ```bash
 make status

@@ -14,7 +14,7 @@ This document provides comprehensive API documentation for the Docker MCP Stack.
 
 ## Authentication
 
-Currently, the Docker MCP Stack operates without authentication for local development.  
+Currently, the Docker MCP Stack operates without authentication for local development.
 For production deployments, consider implementing:
 
 - API key authentication
@@ -330,7 +330,7 @@ docker ai "Show me the git status of this repository"
 
 ## WebSocket Support
 
-Currently, the stack does not support WebSocket connections for streaming responses.  
+Currently, the stack does not support WebSocket connections for streaming responses.
 This is a planned feature for future releases.
 
 ## Monitoring and Metrics

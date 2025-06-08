@@ -4,7 +4,7 @@ This document describes the backup and recovery system for the Docker MCP Stack.
 
 ## Overview
 
-The backup and recovery system provides robust capabilities for maintaining and restoring data from your  
+The backup and recovery system provides robust capabilities for maintaining and restoring data from your
 Docker MCP Stack. It includes:
 
 - **Full backups**: Complete backups of all Docker volumes and configuration files
@@ -205,7 +205,7 @@ A backup of only the changes since the last full backup. This is more efficient 
 
 ### Differential Backup (Future)
 
-A backup of all changes since the last full backup. Unlike incremental backups, differential backups  
+A backup of all changes since the last full backup. Unlike incremental backups, differential backups
 don't depend on previous differential backups.
 
 ## Best Practices

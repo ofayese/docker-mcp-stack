@@ -1,6 +1,6 @@
 # Contributing to Docker MCP Stack
 
-Thank you for your interest in contributing to the Docker MCP Stack project! This document provides guidelines and  
+Thank you for your interest in contributing to the Docker MCP Stack project! This document provides guidelines and
 information for contributors.
 
 ## Table of Contents
@@ -19,7 +19,7 @@ information for contributors.
 
 ## Code of Conduct
 
-This project adheres to a code of conduct that ensures a welcoming and inclusive environment for all contributors.  
+This project adheres to a code of conduct that ensures a welcoming and inclusive environment for all contributors.
 By participating, you agree to uphold these standards:
 
 - Be respectful and inclusive
@@ -46,18 +46,18 @@ By participating, you agree to uphold these standards:
    cd docker-mcp-stack
    ```
 
-3. Set up the development environment:
+1. Set up the development environment:
 
    ```bash
    # Copy and configure environment file
    cp .env.secure.example .env
    # Edit .env with appropriate values
-   
+
    # Install development dependencies
    npm install
    ```
 
-4. Verify your setup:
+1. Verify your setup:
 
    ```bash
    # Run tests and linting
@@ -81,10 +81,10 @@ The project includes a VS Code development container configuration:
 If not using the development container:
 
 1. Install required tools:
-   - Node.js 20+ (for markdown linting)
-   - shellcheck (for shell script linting)
-   - docker-compose
-   - make
+  - Node.js 20+ (for markdown linting)
+  - shellcheck (for shell script linting)
+  - docker-compose
+  - make
 
 1. Install project dependencies:
 
@@ -125,12 +125,12 @@ readonly ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Function example
 function main() {
     local arg="$1"
-    
+
     if [[ -z "$arg" ]]; then
         log_error "Missing required argument"
         return 1
     fi
-    
+
     log_info "Processing: $arg"
     # Implementation
 }
@@ -190,7 +190,7 @@ source "$(dirname "$0")/../scripts/utils/validation.sh"
 test_example_function() {
     local result
     result=$(example_function "test_input")
-    
+
     if [[ "$result" == "expected_output" ]]; then
         log_info "✅ Test passed: example_function"
         return 0

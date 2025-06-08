@@ -22,7 +22,7 @@ docker swarm init
 
 # Check swarm status
 docker info | grep Swarm
-```
+```bash
 
 ## Secrets Implementation
 
@@ -39,7 +39,7 @@ echo "your-secure-grafana-password" | docker secret create grafana_admin_passwor
 echo "your-secure-api-key" | docker secret create api_secret_key -
 echo "your-secure-jwt-secret" | docker secret create jwt_secret_key -
 echo "your-backup-encryption-key" | docker secret create backup_encryption_key -
-```
+```bash
 
 #### Method B: From Environment Variables (Development)
 
@@ -53,7 +53,7 @@ export POSTGRES_PASSWORD="your-password-here"
 echo "$GITHUB_TOKEN" | docker secret create github_token -
 echo "$GITLAB_TOKEN" | docker secret create gitlab_token -
 echo "$POSTGRES_PASSWORD" | docker secret create postgres_password -
-```
+```bash
 
 ### 2. List and Manage Secrets
 
@@ -71,7 +71,7 @@ docker secret rm old_secret_name
 docker secret create github_token_v2 /path/to/new/token
 docker service update --secret-rm github_token --secret-add github_token_v2 mcp_service
 docker secret rm github_token
-```
+```bash
 
 ### 3. Access Secrets in Containers
 
@@ -81,7 +81,7 @@ Secrets are mounted as files in the container at `/run/secrets/SECRET_NAME`:
 # Inside container, read secret
 cat /run/secrets/github_token
 cat /run/secrets/postgres_password
-```
+```bash
 
 ## Security Best Practices
 
@@ -111,14 +111,14 @@ cat /run/secrets/postgres_password
    docker secret ls | grep secret_name
    ```
 
-2. **Permission Denied**
+1. **Permission Denied**
 
    ```bash
    # Check service has access to secret
    docker service inspect service_name | grep -A 10 Secrets
    ```
 
-3. **Service Won't Start**
+1. **Service Won't Start**
 
    ```bash
    # Check service logs
@@ -136,7 +136,7 @@ docker exec -it container_name ls -la /run/secrets/
 
 # Check service configuration
 docker service inspect --pretty service_name
-```
+```bash
 
 ## Production Considerations
 
