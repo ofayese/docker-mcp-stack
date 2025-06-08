@@ -1,0 +1,24 @@
+{
+  "name": "docker-mcp-stack-docs",
+  "version": "1.0.0",
+  "description": "Documentation linting for Docker MCP Stack",
+  "private": true,
+  "scripts": {
+    "lint:md": "markdownlint \"**/*.md\"",
+    "lint:md:fix": "markdownlint \"**/*.md\" --fix",
+    "lint:md:config": "markdownlint --config .markdownlint.json \"**/*.md\"",
+    "lint:md:specific": "markdownlint",
+    "docs:check": "npm run lint:md",
+    "docs:fix": "npm run lint:md:fix"
+  },
+  "devDependencies": {
+    "markdownlint-cli": "^0.37.0"
+  },
+  "keywords": [
+    "documentation",
+    "markdown",
+    "linting",
+    "docker",
+    "mcp"
+  ]
+}

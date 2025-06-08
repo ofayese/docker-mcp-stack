@@ -2,12 +2,13 @@
 
 A comprehensive Docker stack for running multiple AI models locally with Model Context Protocol (MCP) integration.
 
-<div align="center">
-  <img src="https://img.shields.io/badge/docker-compose-blue.svg" alt="Docker Compose">
-  <img src="https://img.shields.io/badge/models-9%2B-green.svg" alt="9+ Models">
-  <img src="https://img.shields.io/badge/mcp-enabled-purple.svg" alt="MCP Enabled">
-  <img src="https://img.shields.io/badge/gordon-ready-orange.svg" alt="Gordon Ready">
-</div>
+<!-- Badges -->
+<p align="center">
+  <img src="https://img.shields.io/badge/docker-compose-blue.svg" alt="Docker Compose" />
+  <img src="https://img.shields.io/badge/models-9%2B-green.svg" alt="9+ Models" />
+  <img src="https://img.shields.io/badge/mcp-enabled-purple.svg" alt="MCP Enabled" />
+  <img src="https://img.shields.io/badge/gordon-ready-orange.svg" alt="Gordon Ready" />
+</p>
 
 ## 🌟 Features
 
@@ -57,13 +58,29 @@ cp .env.example .env
 # Edit .env with your preferred settings
 ```
 
-3. **Pull model images**
+3. **Docker Hub Authentication (Optional)**
+
+For private images or to avoid rate limits, add your Docker Hub credentials:
+
+```bash
+# In your .env file
+DOCKER_HUB_USERNAME=your-dockerhub-username
+DOCKER_HUB_TOKEN=your-dockerhub-token
+```
+
+You can authenticate manually with:
+
+```bash
+make docker-login
+```
+
+4. **Pull model images**
 
 ```bash
 make pull-models
 ```
 
-4. **Start the stack**
+5. **Start the stack**
 
 ```bash
 # Start with basic services
@@ -73,7 +90,7 @@ make start
 make start-all
 ```
 
-5. **Verify installation**
+6. **Verify installation**
 
 ```bash
 make status
@@ -201,10 +218,17 @@ Access Grafana dashboards at <http://localhost:3000> (default credentials: admin
 
 ## 🔒 Security Considerations
 
-- Default setup binds to localhost
-- No authentication is enabled by default
-- For production, enable SSL and authentication
-- API keys and tokens should be properly secured in .env file
+- **Production Security**: Use Docker Secrets for sensitive data (tokens, passwords)
+- **Network Security**: Default setup binds to localhost for development
+- **Authentication**: No authentication enabled by default - configure for production
+- **SSL/TLS**: Enable SSL and proper authentication for production deployments
+- **Environment Variables**: Migrate sensitive data from .env files to Docker Secrets
+- **Access Control**: Use principle of least privilege for service access
+
+For enhanced security, see:
+
+- [DOCKER_SECRETS_GUIDE.md](DOCKER_SECRETS_GUIDE.md) - Docker Secrets implementation
+- [SECURITY_RECOMMENDATIONS.md](SECURITY_RECOMMENDATIONS.md) - Comprehensive security guide
 
 ## 🔧 Customization
 
@@ -233,3 +257,81 @@ MIT
 - [Docker Model Runner](https://docs.docker.com/desktop/model-runner/)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
 - [Gordon AI Assistant](https://www.docker.com/blog/introducing-gordon-ai-assistant/)
+
+## 🔐 Docker Secrets (Production Security)
+
+For production deployments, use Docker Secrets to securely manage sensitive information like API tokens and passwords.
+
+### Prerequisites
+
+Docker Secrets requires Docker Swarm mode:
+
+```bash
+# Initialize Docker Swarm (if not already initialized)
+docker swarm init
+
+# Verify swarm mode is active
+docker info | grep Swarm
+```
+
+### Setup Docker Secrets
+
+1. **Create secrets from environment variables**:
+
+```bash
+# Method 1: Use the built-in secrets manager
+./run.sh secrets init
+
+# Method 2: Create secrets manually
+echo "your-github-token" | docker secret create github_token -
+echo "your-gitlab-token" | docker secret create gitlab_token -
+echo "secure-postgres-password" | docker secret create postgres_password -
+echo "secure-grafana-password" | docker secret create grafana_admin_password -
+```
+
+1. **Start services with Docker Secrets**:
+
+```bash
+# Enable secrets mode in environment
+export USE_DOCKER_SECRETS=true
+
+# Start services using secrets
+./run.sh start --secrets
+
+# OR start all services with secrets
+./run.sh start --all --secrets
+```
+
+1. **Manage secrets**:
+
+```bash
+# List all secrets
+./run.sh secrets list
+
+# Check secrets status
+./run.sh secrets status
+
+# Update a specific secret
+./run.sh secrets update github_token
+
+# Rotate all secrets
+./run.sh secrets rotate
+```
+
+### Benefits of Docker Secrets
+
+- ✅ **Encrypted storage**: Secrets are encrypted at rest and in transit
+- ✅ **Access control**: Only authorized services can access specific secrets
+- ✅ **No environment exposure**: Secrets don't appear in `docker inspect` or process lists
+- ✅ **Rotation support**: Update secrets without rebuilding containers
+- ✅ **Centralized management**: All secrets managed through Docker Swarm
+
+### Migration from Environment Variables
+
+1. **Backup your current .env file**
+2. **Initialize Docker Swarm** (if not already done)
+3. **Create secrets** using `./run.sh secrets init`
+4. **Update environment** to use secrets mode
+5. **Test the deployment** with `./run.sh start --secrets`
+
+For detailed information, see [DOCKER_SECRETS_GUIDE.md](DOCKER_SECRETS_GUIDE.md).

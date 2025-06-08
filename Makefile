@@ -3,7 +3,8 @@
 .PHONY: up down logs check health status stack-up models-light models-medium models-large models-enterprise models-all
 .PHONY: mcp-dev mcp-monitoring mcp-search mcp-all reset-db backup-db restore-db clean clean-models
 .PHONY: pull-models test-models gordon-test-basic gordon-test-time gordon-test-fs gordon-test-db gordon-test-all
-.PHONY: monitor help ssl-setup ssl-renew validate benchmark
+.PHONY: monitor help ssl-setup ssl-renew validate benchmark lint-docs lint-docs-fix lint-docs-install
+.PHONY: secrets-init secrets-list secrets-status secrets-rotate start-secrets start-all-secrets
 
 # Script paths
 STACK_MANAGER := scripts/mcp-stack-manager.sh
@@ -11,6 +12,10 @@ STACK_MANAGER := scripts/mcp-stack-manager.sh
 # === Basic Operations ===
 up:
 	@echo "🚀 Starting MCP Stack..."
+	@if [ -n "$$DOCKER_HUB_USERNAME" ] && [ -n "$$DOCKER_HUB_TOKEN" ]; then \
+		echo "🔑 Authenticating with Docker Hub..."; \
+		echo "$$DOCKER_HUB_TOKEN" | docker login -u "$$DOCKER_HUB_USERNAME" --password-stdin; \
+	fi
 	@chmod +x $(STACK_MANAGER)
 	@$(STACK_MANAGER) service start
 
@@ -107,6 +112,37 @@ restore-db:
 	@./restore.sh $$BACKUP_DIR
 	@echo "✅ Database restore complete"
 
+# === Docker Secrets Management ===
+secrets-init:
+	@echo "🔐 Initializing Docker secrets..."
+	@chmod +x $(STACK_MANAGER)
+	@$(STACK_MANAGER) secrets init
+	@echo "✅ Docker secrets initialized"
+
+secrets-list:
+	@echo "📋 Listing Docker secrets..."
+	@chmod +x $(STACK_MANAGER)
+	@$(STACK_MANAGER) secrets list
+
+secrets-status:
+	@echo "🔍 Checking secrets status..."
+	@chmod +x $(STACK_MANAGER)
+	@$(STACK_MANAGER) secrets status
+
+secrets-rotate:
+	@echo "🔄 Rotating all secrets..."
+	@chmod +x $(STACK_MANAGER)
+	@$(STACK_MANAGER) secrets rotate
+	@echo "✅ Secrets rotation complete"
+
+start-secrets:
+	@echo "🚀 Starting stack with Docker Secrets..."
+	@export USE_DOCKER_SECRETS=true && ./run.sh start --secrets
+
+start-all-secrets:
+	@echo "🚀 Starting all services with Docker Secrets..."
+	@export USE_DOCKER_SECRETS=true && ./run.sh start --all --secrets
+
 # === Testing & Validation ===
 validate:
 	@echo "🔍 Validating configuration..."
@@ -117,6 +153,23 @@ benchmark:
 	@echo "🧪 Running benchmark tests..."
 	@chmod +x $(STACK_MANAGER)
 	@$(STACK_MANAGER) benchmark --comparative --prompts simple
+
+# === Documentation Linting ===
+lint-docs-install:
+	@echo "📦 Installing markdown linting dependencies..."
+	@npm install
+
+lint-docs:
+	@echo "📝 Checking markdown documentation..."
+	@powershell -ExecutionPolicy Bypass -File scripts/lint-docs.ps1 -Action check
+
+lint-docs-fix:
+	@echo "🔧 Fixing markdown documentation..."
+	@powershell -ExecutionPolicy Bypass -File scripts/lint-docs.ps1 -Action fix
+
+lint-docs-report:
+	@echo "📊 Generating markdown linting report..."
+	@powershell -ExecutionPolicy Bypass -File scripts/lint-docs.ps1 -Action report
 
 test-models:
 	@echo "🧪 Testing model endpoints..."
@@ -147,8 +200,18 @@ monitor:
 	@chmod +x $(STACK_MANAGER)
 	@$(STACK_MANAGER) health monitor 30
 
+# === Docker Hub Authentication ===
+docker-login:
+	@echo "🔑 Authenticating with Docker Hub..."
+	@if [ -z "$$DOCKER_HUB_USERNAME" ] || [ -z "$$DOCKER_HUB_TOKEN" ]; then \
+		echo "❗ Please set DOCKER_HUB_USERNAME and DOCKER_HUB_TOKEN environment variables"; \
+		exit 1; \
+	fi
+	@echo "$$DOCKER_HUB_TOKEN" | docker login -u "$$DOCKER_HUB_USERNAME" --password-stdin
+	@echo "✅ Docker Hub authentication successful"
+
 # === Image Management ===
-pull-models:
+pull-models: docker-login
 	@echo "📥 Pulling all model images..."
 	docker pull ai/smollm2
 	docker pull ai/llama3.3
@@ -194,6 +257,7 @@ help:
 	@echo "  make logs            - Follow logs"
 	@echo "  make status          - Show service status"
 	@echo "  make health          - Check service health"
+	@echo "  make docker-login    - Authenticate with Docker Hub"
 	@echo ""
 	@echo "Model Management:"
 	@echo "  make pull-models     - Pull all model images"
@@ -215,10 +279,24 @@ help:
 	@echo "  make test-models     - Test model endpoints"
 	@echo "  make gordon-test-all - Test all Gordon functionality"
 	@echo ""
+	@echo "Documentation:"
+	@echo "  make lint-docs-install - Install markdown linting dependencies"
+	@echo "  make lint-docs       - Check markdown documentation for issues"
+	@echo "  make lint-docs-fix   - Auto-fix markdown documentation issues"
+	@echo "  make lint-docs-report - Generate markdown linting report"
+	@echo ""
 	@echo "Database Operations:"
 	@echo "  make reset-db        - Reset database"
 	@echo "  make backup-db       - Backup database"
 	@echo "  make restore-db      - Restore database"
+	@echo ""
+	@echo "Docker Secrets (Production Security):"
+	@echo "  make secrets-init    - Initialize Docker secrets from environment"
+	@echo "  make secrets-list    - List all managed secrets"
+	@echo "  make secrets-status  - Check secrets status"
+	@echo "  make secrets-rotate  - Rotate all secrets"
+	@echo "  make start-secrets   - Start services with Docker Secrets"
+	@echo "  make start-all-secrets - Start all services with Docker Secrets"
 	@echo ""
 	@echo "Monitoring:"
 	@echo "  make monitor         - Monitor system health"

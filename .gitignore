@@ -1,0 +1,127 @@
+# Docker MCP Stack - Git Ignore File
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Docker volumes and data
+backups/full/*
+backups/incremental/*
+backups/differential/*
+backups/logs/*
+!backups/full/.gitkeep
+!backups/incremental/.gitkeep
+!backups/differential/.gitkeep
+!backups/logs/.gitkeep
+
+# Temporary files
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/*.code-workspace
+.idea/
+*.swp
+*.swo
+*~
+
+# SSL certificates and keys (except examples)
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
+!nginx/certs/example.*
+
+# Monitoring data
+prometheus/data/
+grafana/data/
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup archives
+*.tar.gz
+*.tar.bz2
+*.zip
+*.7z
+
+# Reports
+reports/
+coverage/
+.nyc_output
+.coverage
+htmlcov/
+
+# Local configuration overrides
+config.local.yaml
+config.local.yml
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Azure/Docker Desktop extension files
+.azure/
+docker-desktop-data/

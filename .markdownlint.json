@@ -1,0 +1,43 @@
+{
+  "default": true,
+  "MD003": {
+    "style": "atx"
+  },
+  "MD007": {
+    "indent": 2
+  },
+  "MD013": {
+    "line_length": 120,
+    "code_blocks": false,
+    "tables": false
+  },
+  "MD024": {
+    "siblings_only": true
+  },
+  "MD025": {
+    "front_matter_title": "^\\s*title\\s*[:=]"
+  },
+  "MD033": {
+    "allowed_elements": [
+      "p",
+      "br",
+      "img",
+      "details",
+      "summary",
+      "div",
+      "span",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6"
+    ]
+  },
+  "MD046": {
+    "style": "fenced"
+  },
+  "MD048": {
+    "style": "backtick"
+  }
+}

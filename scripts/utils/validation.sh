@@ -182,6 +182,151 @@ validate_env_vars() {
     return 0
 }
 
+# Function to validate password complexity
+validate_password_complexity() {
+    local password="$1"
+    local min_length="${2:-12}"
+    local errors=()
+    
+    log_debug "Validating password complexity (min length: $min_length)"
+    
+    # Check minimum length
+    if [[ ${#password} -lt $min_length ]]; then
+        errors+=("Password must be at least $min_length characters long")
+    fi
+    
+    # Check for uppercase letter
+    if [[ ! "$password" =~ [A-Z] ]]; then
+        errors+=("Password must contain at least one uppercase letter")
+    fi
+    
+    # Check for lowercase letter
+    if [[ ! "$password" =~ [a-z] ]]; then
+        errors+=("Password must contain at least one lowercase letter")
+    fi
+    
+    # Check for digit
+    if [[ ! "$password" =~ [0-9] ]]; then
+        errors+=("Password must contain at least one digit")
+    fi
+    
+    # Check for special character
+    if [[ ! "$password" =~ [^a-zA-Z0-9] ]]; then
+        errors+=("Password must contain at least one special character")
+    fi
+    
+    # Check for common weak passwords
+    local weak_passwords=("password" "123456" "admin" "root" "guest" "test" "demo")
+    local lower_password
+    lower_password=$(echo "$password" | tr '[:upper:]' '[:lower:]')
+    
+    for weak in "${weak_passwords[@]}"; do
+        if [[ "$lower_password" == *"$weak"* ]]; then
+            errors+=("Password contains common weak pattern: $weak")
+            break
+        fi
+    done
+    
+    if [[ ${#errors[@]} -gt 0 ]]; then
+        log_error "Password complexity validation failed:"
+        for error in "${errors[@]}"; do
+            log_error "  - $error"
+        done
+        return 1
+    fi
+    
+    log_info "✅ Password meets complexity requirements"
+    return 0
+}
+
+# Function to validate security configuration
+validate_security_config() {
+    log_info "Validating security configuration..."
+    local issues=()
+    
+    # Check for default passwords in .env file
+    if [[ -f "$ROOT_DIR/.env" ]]; then
+        # Check common default passwords
+        local default_patterns=("admin" "password" "123456" "test" "demo" "guest")
+        
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^[^#]*PASSWORD.*= ]]; then
+                local password_value
+                password_value=$(echo "$line" | cut -d'=' -f2 | tr -d '"'"'"' ')
+                
+                for pattern in "${default_patterns[@]}"; do
+                    if [[ "$password_value" == *"$pattern"* ]]; then
+                        issues+=("Weak default password detected in .env: ${line%%=*}")
+                        break
+                    fi
+                done
+                
+                # Validate password complexity for non-default passwords
+                if [[ ${#password_value} -gt 0 ]] && [[ ! "$password_value" =~ (your_|_here|_token|example) ]]; then
+                    if ! validate_password_complexity "$password_value" 12 >/dev/null 2>&1; then
+                        issues+=("Password complexity validation failed for: ${line%%=*}")
+                    fi
+                fi
+            fi
+        done < "$ROOT_DIR/.env"
+    fi
+    
+    # Check if SSL is enabled
+    if [[ -f "$ROOT_DIR/.env" ]] && ! grep -q "SSL_ENABLED=true" "$ROOT_DIR/.env"; then
+        issues+=("SSL/TLS is not enabled")
+    fi
+    
+    # Check for API authentication
+    if [[ -f "$ROOT_DIR/.env" ]] && ! grep -q -E "(API_KEY|AUTH_TOKEN|ENABLE_AUTH=true)" "$ROOT_DIR/.env"; then
+        issues+=("No API authentication configuration found")
+    fi
+    
+    # Check Docker daemon security
+    if docker info 2>/dev/null | grep -q "Security Options.*apparmor"; then
+        log_info "✅ AppArmor security enabled"
+    else
+        issues+=("AppArmor security not enabled")
+    fi
+    
+    if [[ ${#issues[@]} -gt 0 ]]; then
+        log_warn "Security configuration issues found:"
+        for issue in "${issues[@]}"; do
+            log_warn "  - $issue"
+        done
+        log_warn "See SECURITY_RECOMMENDATIONS.md for detailed guidance"
+        return 1
+    fi
+    
+    log_info "✅ Security configuration validation passed"
+    return 0
+}
+
+# Function to generate secure password
+generate_secure_password() {
+    local length="${1:-16}"
+    local include_symbols="${2:-true}"
+    
+    log_info "Generating secure password (length: $length)"
+    
+    local charset="a-zA-Z0-9"
+    if [[ "$include_symbols" == "true" ]]; then
+        charset="${charset}!@#$%^&*()_+-=[]{}|;:,.<>?"
+    fi
+    
+    # Generate password using /dev/urandom and tr
+    local password
+    password=$(LC_ALL=C tr -dc "$charset" < /dev/urandom | head -c "$length")
+    
+    # Ensure password meets complexity requirements
+    if validate_password_complexity "$password" "$length" >/dev/null 2>&1; then
+        echo "$password"
+        return 0
+    else
+        # If generated password doesn't meet requirements, try again
+        generate_secure_password "$length" "$include_symbols"
+    fi
+}
+
 # Function to validate configuration files
 validate_config_files() {
     log_info "Validating configuration files..."
@@ -368,6 +513,11 @@ run_comprehensive_validation() {
         ((failed_checks++))
     fi
     
+    # Validate security configuration
+    if ! validate_security_config; then
+        log_warn "Security validation found issues (continuing with warnings)"
+    fi
+    
     # Validate configuration files
     if ! validate_config_files; then
         log_error "Configuration file validation failed"
@@ -387,6 +537,15 @@ run_comprehensive_validation() {
     validate_docker_images || true  # Don't fail if image validation fails
     
     # Report results
+    # Security validation
+    log_info "Running security validation..."
+    if validate_security_config; then
+        log_info "✅ Security validation passed"
+    else
+        log_error "❌ Security validation failed"
+        ((failed_checks++))
+    fi
+
     if [[ $failed_checks -eq 0 ]]; then
         log_info "✅ All validation checks passed"
         return 0
@@ -410,6 +569,7 @@ Commands:
   config                   Validate configuration files
   system                   Check system requirements
   images                   Validate Docker image availability
+  security                 Validate security configuration
   all                      Run all validation checks
   help                     Show this help message
 

@@ -11,6 +11,16 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 UTILS_DIR="$ROOT_DIR/scripts/utils"
 SERVICES_DIR="$ROOT_DIR/scripts/services"
 TEST_DIR="$ROOT_DIR/scripts/test"
+SECRETS_DIR="$ROOT_DIR/secrets"
+
+# Docker Secrets configuration
+SECRETS_CONFIG=(
+    "github_token:GITHUB_TOKEN"
+    "gitlab_token:GITLAB_TOKEN"
+    "postgres_password:POSTGRES_PASSWORD"
+    "grafana_admin_password:GRAFANA_ADMIN_PASSWORD"
+    "backup_encryption_key:BACKUP_ENCRYPTION_KEY"
+)
 
 # Import utility scripts
 # shellcheck disable=SC1091
@@ -41,6 +51,7 @@ Commands:
   update             Update the MCP stack to the latest version
   clean              Clean up resources used by the MCP stack
   validate           Validate the MCP stack configuration
+  secrets [options]  Manage Docker secrets (see 'secrets' subcommand help)
   help               Show this help message
   version            Show version information
 
@@ -72,6 +83,15 @@ Health Commands:
   health service <service>    Check health of a specific service
   health model <model>        Check health of a specific model
   health report               Generate a health report
+
+Secrets Commands:
+  secrets init                Initialize Docker secrets from environment
+  secrets create <name>       Create a specific secret
+  secrets list                List all managed secrets
+  secrets update <name>       Update a specific secret
+  secrets remove <name>       Remove a specific secret
+  secrets rotate              Rotate all secrets
+  secrets status              Show secrets status
 
 Examples:
   $0 setup
@@ -350,6 +370,9 @@ execute_command() {
         validate)
             validate_stack "$@"
             ;;
+        secrets)
+            handle_secrets_command "$@"
+            ;;
         help)
             print_help
             ;;
@@ -401,6 +424,304 @@ setup_stack() {
     
     log_info "✅ MCP stack setup completed successfully"
     log_info "You can now start the stack with: $0 start"
+}
+
+# Docker Secrets Management Functions
+
+# Handle secrets command
+handle_secrets_command() {
+    local subcommand="${1:-}"
+    shift || true
+    
+    case "$subcommand" in
+        init)
+            init_secrets "$@"
+            ;;
+        create)
+            create_secret "$@"
+            ;;
+        list)
+            list_secrets "$@"
+            ;;
+        update)
+            update_secret "$@"
+            ;;
+        remove)
+            remove_secret "$@"
+            ;;
+        rotate)
+            rotate_secrets "$@"
+            ;;
+        status)
+            secrets_status "$@"
+            ;;
+        "")
+            log_error "Missing secrets subcommand"
+            log_info "Available commands: init, create, list, update, remove, rotate, status"
+            return 1
+            ;;
+        *)
+            log_error "Unknown secrets subcommand: $subcommand"
+            log_info "Available commands: init, create, list, update, remove, rotate, status"
+            return 1
+            ;;
+    esac
+}
+
+# Initialize Docker secrets from environment
+init_secrets() {
+    log_info "Initializing Docker secrets from environment..."
+    
+    # Check if Docker swarm is initialized
+    if ! docker node ls >/dev/null 2>&1; then
+        log_info "Initializing Docker swarm mode for secrets support..."
+        docker swarm init --advertise-addr 127.0.0.1 >/dev/null 2>&1 || {
+            log_error "Failed to initialize Docker swarm mode"
+            return 1
+        }
+    fi
+    
+    # Create secrets directory if it doesn't exist
+    mkdir -p "$SECRETS_DIR"
+    
+    # Source environment variables
+    if [[ -f "$ROOT_DIR/.env" ]]; then
+        # shellcheck disable=SC1091
+        source "$ROOT_DIR/.env"
+    fi
+    
+    local created_count=0
+    local failed_count=0
+    
+    # Create secrets from configuration
+    for secret_config in "${SECRETS_CONFIG[@]}"; do
+        local secret_name="${secret_config%%:*}"
+        local env_var="${secret_config##*:}"
+        
+        # Get value from environment variable
+        local secret_value="${!env_var:-}"
+        
+        if [[ -z "$secret_value" ]]; then
+            log_warning "Environment variable $env_var is not set, skipping $secret_name"
+            continue
+        fi
+        
+        # Skip if already exists
+        if docker secret inspect "$secret_name" >/dev/null 2>&1; then
+            log_info "Secret $secret_name already exists, skipping"
+            continue
+        fi
+        
+        # Create secret
+        if echo "$secret_value" | docker secret create "$secret_name" - >/dev/null 2>&1; then
+            log_info "✅ Created secret: $secret_name"
+            ((created_count++))
+        else
+            log_error "❌ Failed to create secret: $secret_name"
+            ((failed_count++))
+        fi
+    done
+    
+    log_info "Secrets initialization completed: $created_count created, $failed_count failed"
+}
+
+# Create a specific secret
+create_secret() {
+    local secret_name="${1:-}"
+    
+    if [[ -z "$secret_name" ]]; then
+        log_error "Missing secret name"
+        log_info "Usage: $0 secrets create <secret_name>"
+        return 1
+    fi
+    
+    # Check if secret already exists
+    if docker secret inspect "$secret_name" >/dev/null 2>&1; then
+        log_error "Secret $secret_name already exists"
+        log_info "Use 'update' command to update existing secrets"
+        return 1
+    fi
+    
+    # Find the environment variable for this secret
+    local env_var=""
+    for secret_config in "${SECRETS_CONFIG[@]}"; do
+        local config_name="${secret_config%%:*}"
+        if [[ "$config_name" == "$secret_name" ]]; then
+            env_var="${secret_config##*:}"
+            break
+        fi
+    done
+    
+    if [[ -z "$env_var" ]]; then
+        log_error "Unknown secret: $secret_name"
+        log_info "Available secrets: $(printf '%s ' "${SECRETS_CONFIG[@]}" | sed 's/:[^ ]*//g')"
+        return 1
+    fi
+    
+    # Source environment variables
+    if [[ -f "$ROOT_DIR/.env" ]]; then
+        # shellcheck disable=SC1091
+        source "$ROOT_DIR/.env"
+    fi
+    
+    local secret_value="${!env_var:-}"
+    
+    if [[ -z "$secret_value" ]]; then
+        log_error "Environment variable $env_var is not set"
+        log_info "Please set $env_var in your .env file"
+        return 1
+    fi
+    
+    # Create secret
+    if echo "$secret_value" | docker secret create "$secret_name" - >/dev/null 2>&1; then
+        log_info "✅ Created secret: $secret_name"
+    else
+        log_error "❌ Failed to create secret: $secret_name"
+        return 1
+    fi
+}
+
+# List all managed secrets
+list_secrets() {
+    log_info "Listing managed Docker secrets..."
+    
+    for secret_config in "${SECRETS_CONFIG[@]}"; do
+        local secret_name="${secret_config%%:*}"
+        local env_var="${secret_config##*:}"
+        
+        if docker secret inspect "$secret_name" >/dev/null 2>&1; then
+            local created_at
+            created_at=$(docker secret inspect "$secret_name" --format '{{.CreatedAt}}' 2>/dev/null | cut -d'.' -f1)
+            echo "✅ $secret_name (env: $env_var) - Created: $created_at"
+        else
+            echo "❌ $secret_name (env: $env_var) - Not found"
+        fi
+    done
+}
+
+# Update a specific secret
+update_secret() {
+    local secret_name="${1:-}"
+    
+    if [[ -z "$secret_name" ]]; then
+        log_error "Missing secret name"
+        log_info "Usage: $0 secrets update <secret_name>"
+        return 1
+    fi
+    
+    # Remove existing secret
+    if docker secret inspect "$secret_name" >/dev/null 2>&1; then
+        log_info "Removing existing secret: $secret_name"
+        if ! docker secret rm "$secret_name" >/dev/null 2>&1; then
+            log_error "Failed to remove existing secret: $secret_name"
+            log_info "Secret may be in use by running services. Stop services first."
+            return 1
+        fi
+    fi
+    
+    # Create new secret
+    create_secret "$secret_name"
+}
+
+# Remove a specific secret
+remove_secret() {
+    local secret_name="${1:-}"
+    
+    if [[ -z "$secret_name" ]]; then
+        log_error "Missing secret name"
+        log_info "Usage: $0 secrets remove <secret_name>"
+        return 1
+    fi
+    
+    if docker secret inspect "$secret_name" >/dev/null 2>&1; then
+        if docker secret rm "$secret_name" >/dev/null 2>&1; then
+            log_info "✅ Removed secret: $secret_name"
+        else
+            log_error "❌ Failed to remove secret: $secret_name"
+            log_info "Secret may be in use by running services"
+            return 1
+        fi
+    else
+        log_warning "Secret $secret_name does not exist"
+    fi
+}
+
+# Rotate all secrets
+rotate_secrets() {
+    log_info "Rotating all managed secrets..."
+    log_warning "This will require restarting services using secrets"
+    
+    # Confirm action
+    read -p "Are you sure you want to rotate all secrets? (y/N): " -r
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Secret rotation cancelled"
+        return 0
+    fi
+    
+    local rotated_count=0
+    local failed_count=0
+    
+    for secret_config in "${SECRETS_CONFIG[@]}"; do
+        local secret_name="${secret_config%%:*}"
+        
+        if docker secret inspect "$secret_name" >/dev/null 2>&1; then
+            log_info "Rotating secret: $secret_name"
+            if update_secret "$secret_name"; then
+                ((rotated_count++))
+            else
+                ((failed_count++))
+            fi
+        fi
+    done
+    
+    log_info "Secret rotation completed: $rotated_count rotated, $failed_count failed"
+    
+    if [[ $rotated_count -gt 0 ]]; then
+        log_warning "Please restart services to use the new secrets"
+        log_info "Run: $0 restart"
+    fi
+}
+
+# Show secrets status
+secrets_status() {
+    log_info "Docker Secrets Status Report"
+    echo "================================"
+    
+    # Check Docker swarm status
+    if docker node ls >/dev/null 2>&1; then
+        echo "✅ Docker swarm mode: Enabled"
+    else
+        echo "❌ Docker swarm mode: Disabled (required for secrets)"
+        return 1
+    fi
+    
+    # Check secrets
+    local total_secrets=${#SECRETS_CONFIG[@]}
+    local existing_secrets=0
+    local missing_secrets=0
+    
+    for secret_config in "${SECRETS_CONFIG[@]}"; do
+        local secret_name="${secret_config%%:*}"
+        
+        if docker secret inspect "$secret_name" >/dev/null 2>&1; then
+            ((existing_secrets++))
+        else
+            ((missing_secrets++))
+        fi
+    done
+    
+    echo "📊 Secrets Summary:"
+    echo "   Total managed secrets: $total_secrets"
+    echo "   Existing secrets: $existing_secrets"
+    echo "   Missing secrets: $missing_secrets"
+    
+    if [[ $missing_secrets -gt 0 ]]; then
+        echo ""
+        echo "⚠️  Missing secrets detected. Run 'secrets init' to create them."
+    fi
+    
+    echo ""
+    list_secrets
 }
 
 # Start the MCP stack

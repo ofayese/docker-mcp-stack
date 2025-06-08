@@ -14,6 +14,21 @@ if [ -f .env ]; then
     source .env
 fi
 
+# Docker Compose file selection
+COMPOSE_FILE="compose.yaml"
+SECRETS_MODE=${USE_DOCKER_SECRETS:-false}
+
+# Check if secrets mode should be used
+if [[ "$SECRETS_MODE" == "true" ]] && [[ -f "compose.secrets.yaml" ]]; then
+    COMPOSE_FILE="compose.secrets.yaml"
+    echo -e "${BLUE}Using Docker Secrets mode${NC}"
+fi
+
+# Docker compose command with appropriate file
+compose_cmd() {
+    docker compose -f "$COMPOSE_FILE" "$@"
+}
+
 # Usage information
 usage() {
     echo -e "${BLUE}Docker MCP Stack - Management Script${NC}"
@@ -21,22 +36,25 @@ usage() {
     echo "Usage: $0 COMMAND [OPTIONS]"
     echo ""
     echo "Commands:"
-    echo "  start [--all]      Start basic services (use --all for all services)"
-    echo "  stop               Stop all services"
-    echo "  restart            Restart all services"
-    echo "  status             Display status of all services"
-    echo "  logs [SERVICE]     View logs (optionally for a specific service)"
-    echo "  update             Update all Docker images"
-    echo "  clean              Clean up containers and volumes"
-    echo "  check              Test model endpoints"
-    echo "  pull-models        Pull all model images"
-    echo "  model MODEL        Start a specific model (e.g., smollm2, llama3)"
+    echo "  start [--all|--secrets]   Start basic services (use --all for all services, --secrets for secrets mode)"
+    echo "  stop                      Stop all services"
+    echo "  restart                   Restart all services"
+    echo "  status                    Display status of all services"
+    echo "  logs [SERVICE]            View logs (optionally for a specific service)"
+    echo "  update                    Update all Docker images"
+    echo "  clean                     Clean up containers and volumes"
+    echo "  check                     Test model endpoints"
+    echo "  pull-models               Pull all model images"
+    echo "  model MODEL               Start a specific model (e.g., smollm2, llama3)"
+    echo "  secrets                   Manage Docker secrets (requires swarm mode)"
     echo ""
     echo "Examples:"
-    echo "  $0 start           Start basic services"
-    echo "  $0 start --all     Start all services including models and monitoring"
-    echo "  $0 model smollm2   Start SmolLM2 model"
-    echo "  $0 logs mcp-time   View logs for the MCP Time server"
+    echo "  $0 start                  Start basic services"
+    echo "  $0 start --all            Start all services including models and monitoring"
+    echo "  $0 start --secrets        Start services using Docker Secrets"
+    echo "  $0 model smollm2          Start SmolLM2 model"
+    echo "  $0 logs mcp-time          View logs for the MCP Time server"
+    echo "  $0 secrets init           Initialize Docker secrets from environment"
     exit 1
 }
 
@@ -52,12 +70,51 @@ check_docker() {
 start_services() {
     check_docker
     
-    if [ "$1" == "--all" ]; then
+    local use_secrets=false
+    local start_all=false
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --all)
+                start_all=true
+                shift
+                ;;
+            --secrets)
+                use_secrets=true
+                COMPOSE_FILE="compose.secrets.yaml"
+                shift
+                ;;
+            *)
+                echo -e "${RED}Unknown option: $1${NC}"
+                usage
+                ;;
+        esac
+    done
+    
+    # Check if secrets file exists when secrets mode is requested
+    if [[ "$use_secrets" == "true" ]] && [[ ! -f "compose.secrets.yaml" ]]; then
+        echo -e "${RED}Error: compose.secrets.yaml not found. Please create it first.${NC}"
+        exit 1
+    fi
+    
+    # Initialize secrets if needed
+    if [[ "$use_secrets" == "true" ]]; then
+        echo -e "${BLUE}Checking Docker secrets...${NC}"
+        if [[ -f "scripts/mcp-stack-manager.sh" ]]; then
+            bash scripts/mcp-stack-manager.sh secrets status || {
+                echo -e "${YELLOW}Initializing Docker secrets...${NC}"
+                bash scripts/mcp-stack-manager.sh secrets init
+            }
+        fi
+    fi
+    
+    if [[ "$start_all" == "true" ]]; then
         echo -e "${BLUE}Starting all services...${NC}"
-        docker compose --profile basic --profile models --profile web --profile monitoring up -d
+        compose_cmd --profile basic --profile models --profile web --profile monitoring up -d
     else
         echo -e "${BLUE}Starting basic services...${NC}"
-        docker compose --profile basic up -d
+        compose_cmd --profile basic up -d
     fi
     
     echo -e "${GREEN}Services started.${NC}"
@@ -71,7 +128,7 @@ stop_services() {
     check_docker
     
     echo -e "${BLUE}Stopping all services...${NC}"
-    docker compose down
+    compose_cmd down
     
     echo -e "${GREEN}Services stopped.${NC}"
 }
@@ -81,7 +138,7 @@ restart_services() {
     check_docker
     
     echo -e "${BLUE}Restarting all services...${NC}"
-    docker compose restart
+    compose_cmd restart
     
     echo -e "${GREEN}Services restarted.${NC}"
     
@@ -155,10 +212,10 @@ view_logs() {
     
     if [ -z "$1" ]; then
         echo -e "${BLUE}Viewing logs for all services...${NC}"
-        docker compose logs --tail=100 -f
+        compose_cmd logs --tail=100 -f
     else
         echo -e "${BLUE}Viewing logs for $1...${NC}"
-        docker compose logs --tail=100 -f "$1"
+        compose_cmd logs --tail=100 -f "$1"
     fi
 }
 
@@ -167,7 +224,7 @@ update_images() {
     check_docker
     
     echo -e "${BLUE}Updating Docker images...${NC}"
-    docker compose pull
+    compose_cmd pull
     
     echo -e "${GREEN}Docker images updated.${NC}"
 }
@@ -182,7 +239,7 @@ clean_up() {
     
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo -e "${BLUE}Stopping and removing containers...${NC}"
-        docker compose down
+        compose_cmd down
         
         echo -e "${BLUE}Removing volumes...${NC}"
         docker volume rm mcp_model_cache mcp_fs_data mcp_git_data mcp_sqlite_data mcp_postgres_data mcp_prometheus_data mcp_grafana_data 2>/dev/null || true
@@ -277,39 +334,39 @@ start_model() {
     case "$model" in
         smollm2)
             echo -e "${BLUE}Starting SmolLM2 model...${NC}"
-            docker compose up -d smollm2-runner
+            compose_cmd up -d smollm2-runner
             ;;
         llama3)
             echo -e "${BLUE}Starting Llama3 model...${NC}"
-            docker compose up -d llama3-runner
+            compose_cmd up -d llama3-runner
             ;;
         phi4)
             echo -e "${BLUE}Starting Phi-4 model...${NC}"
-            docker compose up -d phi4-runner
+            compose_cmd up -d phi4-runner
             ;;
         qwen3)
             echo -e "${BLUE}Starting Qwen3 model...${NC}"
-            docker compose up -d qwen3-runner
+            compose_cmd up -d qwen3-runner
             ;;
         qwen2)
             echo -e "${BLUE}Starting Qwen2.5 model...${NC}"
-            docker compose up -d qwen2-runner
+            compose_cmd up -d qwen2-runner
             ;;
         mistral)
             echo -e "${BLUE}Starting Mistral model...${NC}"
-            docker compose up -d mistral-runner
+            compose_cmd up -d mistral-runner
             ;;
         gemma3)
             echo -e "${BLUE}Starting Gemma3 model...${NC}"
-            docker compose up -d gemma3-runner
+            compose_cmd up -d gemma3-runner
             ;;
         granite7)
             echo -e "${BLUE}Starting Granite 7B model...${NC}"
-            docker compose up -d granite7-runner
+            compose_cmd up -d granite7-runner
             ;;
         granite3)
             echo -e "${BLUE}Starting Granite 3 8B model...${NC}"
-            docker compose up -d granite3-runner
+            compose_cmd up -d granite3-runner
             ;;
         *)
             echo -e "${RED}Error: Unknown model '$model'.${NC}"
@@ -362,6 +419,14 @@ case "$command" in
         ;;
     model)
         start_model "$@"
+        ;;
+    secrets)
+        if [[ -f "scripts/mcp-stack-manager.sh" ]]; then
+            bash scripts/mcp-stack-manager.sh secrets "$@"
+        else
+            echo -e "${RED}Error: mcp-stack-manager.sh not found.${NC}"
+            exit 1
+        fi
         ;;
     *)
         echo -e "${RED}Error: Unknown command '$command'.${NC}"

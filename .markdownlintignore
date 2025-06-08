@@ -1,0 +1,25 @@
+# Markdownlint ignore file
+# Ignore files that don't need strict markdown linting
+
+# Node modules
+node_modules/
+
+# Generated files
+*.log
+
+# Backup files
+backups/
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db

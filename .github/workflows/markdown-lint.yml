@@ -1,0 +1,144 @@
+name: 📝 Documentation Linting
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.md'
+      - '.markdownlint.json'
+      - '.markdownlintignore'
+      - 'package.json'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.md'
+      - '.markdownlint.json'
+      - '.markdownlintignore'
+      - 'package.json'
+  workflow_dispatch:
+
+jobs:
+  markdown-lint:
+    name: 🔍 Lint Markdown Files
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📂 Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 🛠️ Install dependencies
+        run: npm ci
+        
+      - name: 📝 Run markdownlint
+        run: npm run lint:md
+        
+      - name: 📊 Generate report on failure
+        if: failure()
+        run: |
+          echo "## 📝 Markdown Linting Results" >> $GITHUB_STEP_SUMMARY
+          echo "❌ Some markdown files have linting issues." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To fix issues locally, run:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "npm run lint:md:fix" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+      - name: ✅ Success summary
+        if: success()
+        run: |
+          echo "## 📝 Markdown Linting Results" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All markdown files passed linting checks!" >> $GITHUB_STEP_SUMMARY
+
+  markdown-lint-fix-pr:
+    name: 🔧 Auto-fix and Suggest Changes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: markdown-lint
+    continue-on-error: true
+    
+    steps:
+      - name: 📂 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 🛠️ Install dependencies
+        run: npm ci
+        
+      - name: 🔧 Auto-fix markdown issues
+        run: npm run lint:md:fix
+        
+      - name: 📋 Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: 💬 Comment on PR with fixes
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('📝 Markdown Auto-fix Available')
+            );
+            
+            const commentBody = `## 📝 Markdown Auto-fix Available
+            
+            I found some markdown formatting issues that can be automatically fixed.
+            
+            **Suggested fixes:**
+            - Line length adjustments
+            - Consistent header formatting
+            - Proper list indentation
+            - Code block language specifications
+            
+            To apply these fixes locally:
+            \`\`\`bash
+            npm run lint:md:fix
+            \`\`\`
+            
+            Or use the Make target:
+            \`\`\`bash
+            make lint-docs-fix
+            \`\`\`
+            
+            💡 **Tip:** Consider setting up a pre-commit hook to catch these issues earlier!`;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
