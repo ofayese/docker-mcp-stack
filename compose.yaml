@@ -1,0 +1,528 @@
+# Docker MCP Stack - Docker Compose Configuration
+# Complete setup for running multiple AI models with MCP integration
+
+version: "3.9"
+
+services:
+  #
+  # MODEL RUNNERS
+  # All models are exposed via OpenAI-compatible API endpoints
+  #
+  
+  # SmolLM2 Model Runner
+  smollm2-runner:
+    image: ai/smollm2
+    container_name: smollm2-runner
+    ports:
+      - "${SMOLLM2_PORT:-12434}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+      - basic
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Llama3 Model Runner
+  llama3-runner:
+    image: ai/llama3
+    container_name: llama3-runner
+    ports:
+      - "${LLAMA3_PORT:-12435}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Phi-4 Model Runner
+  phi4-runner:
+    image: ai/phi4
+    container_name: phi4-runner
+    ports:
+      - "${PHI4_PORT:-12436}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Qwen3 Model Runner
+  qwen3-runner:
+    image: ai/qwen3
+    container_name: qwen3-runner
+    ports:
+      - "${QWEN3_PORT:-12437}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Qwen2.5 Model Runner
+  qwen2-runner:
+    image: ai/qwen2.5
+    container_name: qwen2-runner
+    ports:
+      - "${QWEN2_PORT:-12438}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Mistral Model Runner
+  mistral-runner:
+    image: ai/mistral
+    container_name: mistral-runner
+    ports:
+      - "${MISTRAL_PORT:-12439}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Gemma3 Model Runner
+  gemma3-runner:
+    image: ai/gemma3
+    container_name: gemma3-runner
+    ports:
+      - "${GEMMA3_PORT:-12440}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Granite 7B Lab Model Runner
+  granite7-runner:
+    image: redhat/granite-7b-lab-gguf
+    container_name: granite7-runner
+    ports:
+      - "${GRANITE7_PORT:-12441}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Granite 3 8B Instruct Model Runner
+  granite3-runner:
+    image: ai/granite-3-8b-instruct
+    container_name: granite3-runner
+    ports:
+      - "${GRANITE3_PORT:-12442}:12434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_DEVICES:-0}
+    volumes:
+      - model_cache:/app/models
+    restart: unless-stopped
+    profiles:
+      - models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  #
+  # MCP SERVERS
+  # These servers provide additional capabilities to Gordon AI assistant
+  #
+
+  # MCP Time Server - Provides temporal capabilities
+  mcp-time:
+    image: mcp/time
+    container_name: mcp-time
+    restart: unless-stopped
+    profiles:
+      - basic
+      - mcp
+
+  # MCP Fetch Server - Provides web fetch capabilities
+  mcp-fetch:
+    image: mcp/fetch
+    container_name: mcp-fetch
+    restart: unless-stopped
+    profiles:
+      - basic
+      - mcp
+
+  # MCP Filesystem Server - Provides filesystem access
+  mcp-filesystem:
+    image: mcp/filesystem
+    container_name: mcp-filesystem
+    command:
+      - /rootfs
+    volumes:
+      - fs_data:/rootfs
+    restart: unless-stopped
+    profiles:
+      - basic
+      - mcp
+
+  # MCP Postgres Server - Provides PostgreSQL database access
+  mcp-postgres:
+    image: mcp/postgres
+    container_name: mcp-postgres-server
+    environment:
+      POSTGRES_CONNECTION_STRING: "postgresql://${POSTGRES_USER:-mcp}:${POSTGRES_PASSWORD:-mcp_password}@postgres:5432/${POSTGRES_DB:-mcp}"
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - basic
+      - mcp
+
+  # MCP Git Server - Provides Git operations
+  mcp-git:
+    image: mcp/git
+    container_name: mcp-git
+    volumes:
+      - git_data:/workspace
+    restart: unless-stopped
+    profiles:
+      - basic
+      - mcp
+
+  # MCP SQLite Server - Provides SQLite database access
+  mcp-sqlite:
+    image: mcp/sqlite
+    container_name: mcp-sqlite
+    volumes:
+      - sqlite_data:/data
+    restart: unless-stopped
+    profiles:
+      - basic
+      - mcp
+
+  # MCP GitHub Server - Provides GitHub API access
+  mcp-github:
+    image: mcp/github
+    container_name: mcp-github
+    environment:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN:-your-github-token}"
+    restart: unless-stopped
+    profiles:
+      - github
+      - mcp
+
+  # MCP GitLab Server - Provides GitLab API access
+  mcp-gitlab:
+    image: mcp/gitlab
+    container_name: mcp-gitlab
+    environment:
+      GITLAB_PERSONAL_ACCESS_TOKEN: "${GITLAB_TOKEN:-your-gitlab-token}"
+    restart: unless-stopped
+    profiles:
+      - gitlab
+      - mcp
+
+  # MCP Sentry Server - Provides Sentry monitoring integration
+  mcp-sentry:
+    image: mcp/sentry
+    container_name: mcp-sentry
+    environment:
+      SENTRY_DSN: "${SENTRY_DSN:-your-sentry-dsn}"
+    restart: unless-stopped
+    profiles:
+      - sentry
+      - mcp
+
+  # MCP Everything Server - Combines capabilities of various MCP servers
+  mcp-everything:
+    image: mcp/everything
+    container_name: mcp-everything
+    environment:
+      POSTGRES_CONNECTION_STRING: "postgresql://${POSTGRES_USER:-mcp}:${POSTGRES_PASSWORD:-mcp_password}@postgres:5432/${POSTGRES_DB:-mcp}"
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN:-your-github-token}"
+      GITLAB_PERSONAL_ACCESS_TOKEN: "${GITLAB_TOKEN:-your-gitlab-token}"
+      SENTRY_DSN: "${SENTRY_DSN:-your-sentry-dsn}"
+    volumes:
+      - fs_data:/rootfs
+      - git_data:/workspace
+      - sqlite_data:/data
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - everything
+      - mcp
+
+  #
+  # INFRASTRUCTURE SERVICES
+  # Core services required for the stack to function
+  #
+
+  # PostgreSQL Database - Used by MCP Postgres Server
+  postgres:
+    image: postgres:15-alpine
+    container_name: mcp-postgres
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-mcp}"
+      POSTGRES_USER: "${POSTGRES_USER:-mcp}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-mcp_password}"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    profiles:
+      - basic
+      - infrastructure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mcp} -d ${POSTGRES_DB:-mcp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx - Reverse proxy for all model runners
+  nginx:
+    image: nginx:alpine
+    container_name: mcp-nginx
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    restart: unless-stopped
+    depends_on:
+      - smollm2-runner
+    profiles:
+      - web
+      - infrastructure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  #
+  # MONITORING SERVICES
+  # Services for monitoring the stack
+  #
+
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mcp-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Grafana - Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mcp-grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Node Exporter - System metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: mcp-node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9100/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  # Model data
+  model_cache:
+    name: mcp_model_cache
+    driver: local
+
+  # MCP server data
+  fs_data:
+    name: mcp_fs_data
+    driver: local
+  git_data:
+    name: mcp_git_data
+    driver: local
+  sqlite_data:
+    name: mcp_sqlite_data
+    driver: local
+  postgres_data:
+    name: mcp_postgres_data
+    driver: local
+
+  # Monitoring data
+  prometheus_data:
+    name: mcp_prometheus_data
+    driver: local
+  grafana_data:
+    name: mcp_grafana_data
+    driver: local
+
+networks:
+  default:
+    name: mcp_network
+    driver: bridge

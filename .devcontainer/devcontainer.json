@@ -1,0 +1,14 @@
+{
+  "name": "docker-ai-mcp-env",
+  "dockerComposeFile": "../compose.yaml",
+  "service": "gordon",
+  "workspaceFolder": "/workspace",
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  },
+  "extensions": [
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers"
+  ],
+  "remoteUser": "root"
+}

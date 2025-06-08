@@ -1,0 +1,117 @@
+# Docker MCP Stack - Gordon MCP Configuration
+# This file is automatically detected by Gordon AI when running 'docker ai' in this directory
+
+services:
+  # MCP Time Server - Provides temporal capabilities
+  time:
+    image: mcp/time
+    container_name: mcp-time
+    restart: unless-stopped
+
+  # MCP Fetch Server - Provides web fetch capabilities
+  fetch:
+    image: mcp/fetch
+    container_name: mcp-fetch
+    restart: unless-stopped
+
+  # MCP Filesystem Server - Provides filesystem access
+  filesystem:
+    image: mcp/filesystem
+    container_name: mcp-filesystem
+    command:
+      - /rootfs
+    volumes:
+      - .:/rootfs
+    restart: unless-stopped
+
+  # MCP Postgres Server - Provides PostgreSQL database access
+  postgres:
+    image: mcp/postgres
+    container_name: mcp-postgres-server
+    environment:
+      POSTGRES_CONNECTION_STRING: "${POSTGRES_CONNECTION_STRING:-postgresql://mcp:mcp_password@postgres:5432/mcp}"
+    restart: unless-stopped
+    depends_on:
+      - postgres-db
+
+  # MCP Git Server - Provides Git operations
+  git:
+    image: mcp/git
+    container_name: mcp-git
+    volumes:
+      - git_data:/workspace
+    restart: unless-stopped
+
+  # MCP SQLite Server - Provides SQLite database access
+  sqlite:
+    image: mcp/sqlite
+    container_name: mcp-sqlite
+    volumes:
+      - sqlite_data:/data
+    restart: unless-stopped
+
+  # MCP GitHub Server - Provides GitHub API access
+  github:
+    image: mcp/github
+    container_name: mcp-github
+    environment:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN:-your-github-token}"
+    restart: unless-stopped
+    profiles:
+      - github
+
+  # MCP GitLab Server - Provides GitLab API access
+  gitlab:
+    image: mcp/gitlab
+    container_name: mcp-gitlab
+    environment:
+      GITLAB_PERSONAL_ACCESS_TOKEN: "${GITLAB_TOKEN:-your-gitlab-token}"
+    restart: unless-stopped
+    profiles:
+      - gitlab
+
+  # MCP Sentry Server - Provides Sentry monitoring integration
+  sentry:
+    image: mcp/sentry
+    container_name: mcp-sentry
+    environment:
+      SENTRY_DSN: "${SENTRY_DSN:-your-sentry-dsn}"
+    restart: unless-stopped
+    profiles:
+      - sentry
+
+  # MCP Everything Server - Combines capabilities of various MCP servers
+  everything:
+    image: mcp/everything
+    container_name: mcp-everything
+    environment:
+      POSTGRES_CONNECTION_STRING: "${POSTGRES_CONNECTION_STRING:-postgresql://mcp:mcp_password@postgres:5432/mcp}"
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN:-your-github-token}"
+      GITLAB_PERSONAL_ACCESS_TOKEN: "${GITLAB_TOKEN:-your-gitlab-token}"
+      SENTRY_DSN: "${SENTRY_DSN:-your-sentry-dsn}"
+    volumes:
+      - .:/rootfs
+      - git_data:/workspace
+      - sqlite_data:/data
+    restart: unless-stopped
+    profiles:
+      - everything
+    depends_on:
+      - postgres-db
+
+  # PostgreSQL Database - Used by MCP Postgres Server
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: mcp-postgres-db
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-mcp}"
+      POSTGRES_USER: "${POSTGRES_USER:-mcp}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-mcp_password}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  git_data:
+  sqlite_data:

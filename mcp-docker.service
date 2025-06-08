@@ -1,0 +1,15 @@
+[Unit]
+Description=Docker MCP Stack
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/docker-mcp-stack
+ExecStart=/opt/docker-mcp-stack/run.sh start
+ExecStop=/opt/docker-mcp-stack/run.sh stop
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

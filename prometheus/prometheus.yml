@@ -1,0 +1,53 @@
+# Docker MCP Stack - Prometheus Configuration
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# Rule files
+rule_files:
+  # - "rules/*.yml"
+
+# Scrape configs
+scrape_configs:
+  # Self monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Node Exporter for host metrics
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  # Docker metrics
+  - job_name: "docker"
+    static_configs:
+      - targets: ["host.docker.internal:9323"]
+
+  # Model runners
+  - job_name: "model-runners"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - "smollm2-runner:12434"
+        - "llama3-runner:12434"
+        - "phi4-runner:12434"
+        - "qwen3-runner:12434"
+        - "qwen2-runner:12434"
+        - "mistral-runner:12434"
+        - "gemma3-runner:12434"
+        - "granite7-runner:12434"
+        - "granite3-runner:12434"
+
+  # Nginx
+  - job_name: "nginx"
+    static_configs:
+      - targets: ["nginx:80"]
+    metrics_path: /metrics
+
+  # PostgreSQL
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres:5432"]
