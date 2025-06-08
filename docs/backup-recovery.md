@@ -4,7 +4,8 @@ This document describes the backup and recovery system for the Docker MCP Stack.
 
 ## Overview
 
-The backup and recovery system provides robust capabilities for maintaining and restoring data from your Docker MCP Stack. It includes:
+The backup and recovery system provides robust capabilities for maintaining and restoring data from your  
+Docker MCP Stack. It includes:
 
 - **Full backups**: Complete backups of all Docker volumes and configuration files
 - **Incremental backups**: Efficient backups that only store changes since the last full backup
@@ -14,7 +15,7 @@ The backup and recovery system provides robust capabilities for maintaining and 
 
 ## Directory Structure
 
-```
+```bash
 docker-mcp-stack/
 ├── backups/                # Root backup storage directory
 │   ├── full/               # Full backup storage
@@ -32,7 +33,7 @@ docker-mcp-stack/
 │   └── backup-recovery-manager.sh  # Main backup & recovery manager
 └── cron/
     └── backup-cron         # Cron configuration for scheduled backups
-```
+```bash
 
 ## Getting Started
 
@@ -55,13 +56,13 @@ BACKUP_ENABLE_VERIFICATION=true
 
 # Maximum parallel backup operations
 BACKUP_MAX_PARALLEL_OPERATIONS=2
-```
+```bash
 
 To create a template configuration file:
 
 ```bash
 bash scripts/backup-recovery-manager.sh create-env-template
-```
+```bash
 
 ## Usage
 
@@ -73,7 +74,7 @@ To create a full backup of all Docker MCP Stack data:
 
 ```bash
 bash scripts/backup-recovery-manager.sh full-backup
-```
+```bash
 
 Options:
 
@@ -86,7 +87,7 @@ To create an incremental backup (changes since the last full backup):
 
 ```bash
 bash scripts/backup-recovery-manager.sh incremental-backup
-```
+```bash
 
 Options:
 
@@ -100,7 +101,7 @@ To list all available backups:
 
 ```bash
 bash scripts/backup-recovery-manager.sh list
-```
+```bash
 
 ### Restoring Backups
 
@@ -108,7 +109,7 @@ To restore a backup:
 
 ```bash
 bash scripts/backup-recovery-manager.sh restore <backup_id>
-```
+```bash
 
 Options:
 
@@ -128,11 +129,12 @@ bash scripts/backup-recovery-manager.sh restore backup_20250601_120000_abcdef
 bash scripts/backup-recovery-manager.sh restore backup_20250601_120000_abcdef --components config
 
 # Restore specific volumes
-bash scripts/backup-recovery-manager.sh restore backup_20250601_120000_abcdef --components volume:mcp_data,volume:gordon_models
+bash scripts/backup-recovery-manager.sh restore backup_20250601_120000_abcdef \
+  --components volume:mcp_data,volume:gordon_models
 
 # Force restore, overwriting existing data
 bash scripts/backup-recovery-manager.sh restore backup_20250601_120000_abcdef --force
-```
+```bash
 
 ### Scheduling Backups
 
@@ -140,13 +142,13 @@ To schedule automatic backups:
 
 ```bash
 bash scripts/backup-recovery-manager.sh schedule "0 2 * * 0" "0 2 * * 1-6"
-```
+```bash
 
 This creates a cron configuration file that you can install with:
 
 ```bash
 crontab /path/to/docker-mcp-stack/cron/backup-cron
-```
+```bash
 
 By default:
 
@@ -159,7 +161,7 @@ To verify the health of your backups:
 
 ```bash
 bash scripts/backup-recovery-manager.sh health-check
-```
+```bash
 
 Options:
 
@@ -181,7 +183,7 @@ Each backup includes a metadata file (`backup-metadata.json`) with information a
   "encrypted": false,
   "verified": true
 }
-```
+```bash
 
 ## Backup Verification
 
@@ -203,7 +205,8 @@ A backup of only the changes since the last full backup. This is more efficient 
 
 ### Differential Backup (Future)
 
-A backup of all changes since the last full backup. Unlike incremental backups, differential backups don't depend on previous differential backups.
+A backup of all changes since the last full backup. Unlike incremental backups, differential backups  
+don't depend on previous differential backups.
 
 ## Best Practices
 
@@ -239,7 +242,7 @@ source scripts/utils/backup-recovery.sh
 
 # Verify a specific backup
 verify_backup "/path/to/backup/full/backup_20250601_120000_abcdef"
-```
+```bash
 
 ### Custom Backup Paths
 
@@ -251,4 +254,4 @@ BACKUP_DIR="/custom/backup/path"
 
 # Or specify at runtime
 BACKUP_DIR="/custom/backup/path" bash scripts/backup-recovery-manager.sh full-backup
-```
+```bash

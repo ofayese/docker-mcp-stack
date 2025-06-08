@@ -14,7 +14,8 @@ This document provides comprehensive API documentation for the Docker MCP Stack.
 
 ## Authentication
 
-Currently, the Docker MCP Stack operates without authentication for local development. For production deployments, consider implementing:
+Currently, the Docker MCP Stack operates without authentication for local development.  
+For production deployments, consider implementing:
 
 - API key authentication
 - OAuth 2.0
@@ -58,19 +59,19 @@ Content-Type: application/json
   "max_tokens": 150,
   "temperature": 0.7
 }
-```
+```bash
 
 #### List Models
 
 ```http
 GET http://localhost:{PORT}/engines/v1/models
-```
+```bash
 
 #### Model Information
 
 ```http
 GET http://localhost:{PORT}/engines/v1/models/{model_name}
-```
+```bash
 
 ### Unified Access via Nginx
 
@@ -91,7 +92,7 @@ Content-Type: application/json
     }
   ]
 }
-```
+```bash
 
 #### Available Routes
 
@@ -131,7 +132,7 @@ The MCP servers are automatically detected by Gordon AI when using:
 
 ```bash
 docker ai "Your question here"
-```
+```bash
 
 ## Health Check Endpoints
 
@@ -139,13 +140,13 @@ docker ai "Your question here"
 
 ```http
 GET http://localhost:{PORT}/health
-```
+```bash
 
 ### Model Health
 
 ```http
 GET http://localhost:{PORT}/engines/v1/models
-```
+```bash
 
 Returns 200 if the model is ready to serve requests.
 
@@ -153,7 +154,7 @@ Returns 200 if the model is ready to serve requests.
 
 ```http
 GET http://localhost:5432/  # PostgreSQL (requires pg_isready)
-```
+```bash
 
 ### Monitoring Endpoints
 
@@ -182,7 +183,7 @@ GET http://localhost:5432/  # PostgreSQL (requires pg_isready)
     "code": "missing_parameter"
   }
 }
-```
+```bash
 
 ## Rate Limiting
 
@@ -197,7 +198,7 @@ Rate limit headers are included in responses:
 X-RateLimit-Limit: 10
 X-RateLimit-Remaining: 9
 X-RateLimit-Reset: 1234567890
-```
+```bash
 
 ## Examples
 
@@ -219,13 +220,13 @@ curl -X POST http://localhost:12434/engines/v1/chat/completions \
     "max_tokens": 200,
     "temperature": 0.7
   }'
-```
+```bash
 
 #### List Available Models
 
 ```bash
 curl http://localhost:12434/engines/v1/models
-```
+```bash
 
 #### Via Nginx Proxy
 
@@ -236,7 +237,7 @@ curl -X POST http://localhost/models/smollm2/engines/v1/chat/completions \
     "model": "ai/smollm2",
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
-```
+```bash
 
 ### Python Examples
 
@@ -262,7 +263,7 @@ response = client.chat.completions.create(
 )
 
 print(response.choices[0].message.content)
-```
+```bash
 
 #### Using Requests
 
@@ -281,7 +282,7 @@ payload = {
 response = requests.post(url, json=payload)
 result = response.json()
 print(result["choices"][0]["message"]["content"])
-```
+```bash
 
 ### Node.js Examples
 
@@ -304,7 +305,7 @@ const response = await fetch('http://localhost:12434/engines/v1/chat/completions
 
 const data = await response.json();
 console.log(data.choices[0].message.content);
-```
+```bash
 
 ### Gordon AI Examples
 
@@ -325,11 +326,12 @@ docker ai "Fetch the latest news about AI"
 
 # Git operations
 docker ai "Show me the git status of this repository"
-```
+```bash
 
 ## WebSocket Support
 
-Currently, the stack does not support WebSocket connections for streaming responses. This is a planned feature for future releases.
+Currently, the stack does not support WebSocket connections for streaming responses.  
+This is a planned feature for future releases.
 
 ## Monitoring and Metrics
 
@@ -368,13 +370,13 @@ Access Grafana at `http://localhost:3000` (admin/admin) for:
    docker ps | grep model-runner
    ```
 
-2. Check container logs:
+1. Check container logs:
 
    ```bash
    docker logs smollm2-runner
    ```
 
-3. Verify health check:
+1. Verify health check:
 
    ```bash
    curl http://localhost:12434/engines/v1/models
@@ -386,7 +388,7 @@ Models require significant memory. Monitor with:
 
 ```bash
 docker stats
-```
+```bash
 
 Consider adjusting `MODEL_MEMORY_LIMIT` in `.env`.
 
@@ -405,7 +407,8 @@ For HTTPS support, configure SSL certificates in `nginx/ssl/` and set `SSL_ENABL
 
 ### Custom MCP Servers
 
-Create custom MCP servers following the [MCP specification](https://modelcontextprotocol.io/) and add them to `gordon-mcp.yml`.
+Create custom MCP servers following the
+[MCP specification](https://modelcontextprotocol.io/) and add them to `gordon-mcp.yml`.
 
 ## Support
 

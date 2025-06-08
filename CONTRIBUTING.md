@@ -1,6 +1,7 @@
 # Contributing to Docker MCP Stack
 
-Thank you for your interest in contributing to the Docker MCP Stack project! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to the Docker MCP Stack project! This document provides guidelines and  
+information for contributors.
 
 ## Table of Contents
 
@@ -18,7 +19,8 @@ Thank you for your interest in contributing to the Docker MCP Stack project! Thi
 
 ## Code of Conduct
 
-This project adheres to a code of conduct that ensures a welcoming and inclusive environment for all contributors. By participating, you agree to uphold these standards:
+This project adheres to a code of conduct that ensures a welcoming and inclusive environment for all contributors.  
+By participating, you agree to uphold these standards:
 
 - Be respectful and inclusive
 - Focus on constructive feedback
@@ -84,7 +86,7 @@ If not using the development container:
    - docker-compose
    - make
 
-2. Install project dependencies:
+1. Install project dependencies:
 
    ```bash
    npm install
@@ -132,7 +134,7 @@ function main() {
     log_info "Processing: $arg"
     # Implementation
 }
-```
+```bash
 
 ### Docker and Compose
 
@@ -168,7 +170,7 @@ make test
 make test-backup
 make test-health
 make test-benchmark
-```
+```bash
 
 ### Writing Tests
 
@@ -199,7 +201,7 @@ test_example_function() {
         return 1
     fi
 }
-```
+```bash
 
 ## Documentation Standards
 
@@ -229,13 +231,13 @@ test_example_function() {
 
 Follow the conventional commit format:
 
-```
+```bash
 <type>(<scope>): <description>
 
 [optional body]
 
 [optional footer]
-```
+```bash
 
 ### Types
 
@@ -249,23 +251,23 @@ Follow the conventional commit format:
 
 ### Examples
 
-```
+```bash
 feat(backup): add differential backup support
 
 Implement differential backup functionality to complement
 existing full and incremental backup strategies.
 
 Closes #123
-```
+```bash
 
-```
+```bash
 fix(nginx): resolve rate limiting configuration issue
 
 Update nginx configuration to properly handle rate limiting
 for the API endpoints.
 
 Fixes #456
-```
+```bash
 
 ## Pull Request Process
 
@@ -303,7 +305,7 @@ Brief description of changes
 - [ ] Self-review completed
 - [ ] Comments added for complex logic
 - [ ] No new warnings introduced
-```
+```bash
 
 ## Issue Reporting
 

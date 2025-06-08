@@ -49,14 +49,14 @@ A comprehensive Docker stack for running multiple AI models locally with Model C
 ```bash
 git clone https://github.com/yourusername/docker-mcp-stack.git
 cd docker-mcp-stack
-```
+```bash
 
 2. **Configure environment variables**
 
 ```bash
 cp .env.example .env
 # Edit .env with your preferred settings
-```
+```bash
 
 3. **Docker Hub Authentication (Optional)**
 
@@ -66,19 +66,19 @@ For private images or to avoid rate limits, add your Docker Hub credentials:
 # In your .env file
 DOCKER_HUB_USERNAME=your-dockerhub-username
 DOCKER_HUB_TOKEN=your-dockerhub-token
-```
+```bash
 
 You can authenticate manually with:
 
 ```bash
 make docker-login
-```
+```bash
 
 4. **Pull model images**
 
 ```bash
 make pull-models
-```
+```bash
 
 5. **Start the stack**
 
@@ -88,14 +88,14 @@ make start
 
 # OR start everything
 make start-all
-```
+```bash
 
 6. **Verify installation**
 
 ```bash
 make status
 make check
-```
+```bash
 
 ## 💻 Usage
 
@@ -109,7 +109,7 @@ Start a specific model:
 
 # OR using make
 make models MODEL=smollm2
-```
+```bash
 
 Available models: `smollm2`, `llama3`, `phi4`, `qwen3`, `qwen2`, `mistral`, `gemma3`, `granite7`, `granite3`
 
@@ -126,7 +126,7 @@ docker ai "Create a summary of the files in this directory"
 
 # Database operations
 docker ai "Create a new SQLite database and add a users table"
-```
+```bash
 
 ### API Endpoints
 
@@ -148,7 +148,7 @@ curl http://localhost:80/models/smollm2/engines/v1/chat/completions \
     "model": "ai/smollm2",
     "messages": [{"role": "user", "content": "Hello world!"}]
   }'
-```
+```bash
 
 ### Common Operations
 
@@ -177,11 +177,11 @@ make restore FILE=backups/mcp_backup_20250608_123456.tar.gz
 
 # Install as systemd service
 make install-service
-```
+```bash
 
 ## 🏗️ Architecture
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐
 │   Gordon AI     │────│  Model Runners  │
 │                 │    │  (9+ Models)    │
@@ -210,7 +210,7 @@ make install-service
 │ │         │ │Database│ │  Grafana   │ │
 │ └─────────┘ └────────┘ └────────────┘ │
 └────────────────────────────────────────┘
-```
+```bash
 
 ## 📊 Monitoring
 
@@ -272,7 +272,7 @@ docker swarm init
 
 # Verify swarm mode is active
 docker info | grep Swarm
-```
+```bash
 
 ### Setup Docker Secrets
 
@@ -287,7 +287,7 @@ echo "your-github-token" | docker secret create github_token -
 echo "your-gitlab-token" | docker secret create gitlab_token -
 echo "secure-postgres-password" | docker secret create postgres_password -
 echo "secure-grafana-password" | docker secret create grafana_admin_password -
-```
+```bash
 
 1. **Start services with Docker Secrets**:
 
@@ -300,7 +300,7 @@ export USE_DOCKER_SECRETS=true
 
 # OR start all services with secrets
 ./run.sh start --all --secrets
-```
+```bash
 
 1. **Manage secrets**:
 
@@ -316,7 +316,7 @@ export USE_DOCKER_SECRETS=true
 
 # Rotate all secrets
 ./run.sh secrets rotate
-```
+```bash
 
 ### Benefits of Docker Secrets
 
