@@ -2,6 +2,9 @@
 # Docker MCP Stack - Management Script
 # This script provides a CLI for managing the Docker MCP Stack
 
+# Enable strict mode for better error handling
+set -euo pipefail
+
 # ANSI color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -9,23 +12,77 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Load environment variables
-if [ -f .env ]; then
-    source .env
-fi
+# Cleanup function
+cleanup() {
+    local exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        echo -e "${RED}Script failed with exit code $exit_code${NC}" >&2
+    fi
+    exit $exit_code
+}
 
-# Docker Compose file selection
+# Set up trap for cleanup
+trap cleanup EXIT
+
+# Validate script environment
+validate_environment() {
+    # Check if we're in the right directory
+    if [[ ! -f "compose.yaml" ]]; then
+        echo -e "${RED}Error: compose.yaml not found. Please run this script from the project root directory.${NC}" >&2
+        exit 1
+    fi
+    
+    # Check if Docker is available
+    if ! command -v docker >/dev/null 2>&1; then
+        echo -e "${RED}Error: Docker is not installed or not in PATH.${NC}" >&2
+        exit 1
+    fi
+    
+    # Check if docker compose is available
+    if ! docker compose version >/dev/null 2>&1; then
+        echo -e "${RED}Error: Docker Compose is not available.${NC}" >&2
+        exit 1
+    fi
+}
+
+# Load environment variables safely
+load_environment() {
+    if [[ -f .env ]]; then
+        # shellcheck source=/dev/null
+        set -a
+        source .env
+        set +a
+        echo -e "${BLUE}Environment variables loaded from .env${NC}"
+    else
+        echo -e "${YELLOW}Warning: .env file not found. Using default values.${NC}"
+    fi
+}
+
+# Docker Compose file selection with validation
 COMPOSE_FILE="compose.yaml"
-SECRETS_MODE=${USE_DOCKER_SECRETS:-false}
+SECRETS_MODE="${USE_DOCKER_SECRETS:-false}"
 
-# Check if secrets mode should be used
-if [[ "$SECRETS_MODE" == "true" ]] && [[ -f "compose.secrets.yaml" ]]; then
-    COMPOSE_FILE="compose.secrets.yaml"
-    echo -e "${BLUE}Using Docker Secrets mode${NC}"
-fi
+# Validate secrets mode configuration
+validate_secrets_mode() {
+    if [[ "$SECRETS_MODE" == "true" ]]; then
+        if [[ -f "compose.secrets.yaml" ]]; then
+            COMPOSE_FILE="compose.secrets.yaml"
+            echo -e "${BLUE}Using Docker Secrets mode${NC}"
+        else
+            echo -e "${RED}Error: USE_DOCKER_SECRETS is true but compose.secrets.yaml not found${NC}" >&2
+            exit 1
+        fi
+    fi
+}
 
-# Docker compose command with appropriate file
+# Docker compose command with appropriate file and error handling
 compose_cmd() {
+    if [[ $# -eq 0 ]]; then
+        echo -e "${RED}Error: No arguments provided to compose_cmd${NC}" >&2
+        return 1
+    fi
+    
+    echo -e "${BLUE}Running: docker compose -f $COMPOSE_FILE $*${NC}"
     docker compose -f "$COMPOSE_FILE" "$@"
 }
 
@@ -58,12 +115,41 @@ usage() {
     exit 1
 }
 
-# Check if Docker is running
+# Check if Docker is running with enhanced validation
 check_docker() {
     if ! docker info > /dev/null 2>&1; then
-        echo -e "${RED}Error: Docker is not running. Please start Docker and try again.${NC}"
+        echo -e "${RED}Error: Docker is not running. Please start Docker and try again.${NC}" >&2
         exit 1
     fi
+    
+    # Check Docker version compatibility
+    local docker_version
+    docker_version=$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo "unknown")
+    echo -e "${BLUE}Docker version: $docker_version${NC}"
+    
+    # Check if swarm is required for secrets mode
+    if [[ "$SECRETS_MODE" == "true" ]]; then
+        if ! docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null | grep -q "active"; then
+            echo -e "${YELLOW}Warning: Docker Swarm is not active but secrets mode is enabled${NC}"
+        fi
+    fi
+}
+
+# Input validation function
+validate_service_name() {
+    local service_name="$1"
+    if [[ -z "$service_name" ]]; then
+        echo -e "${RED}Error: Service name cannot be empty${NC}" >&2
+        return 1
+    fi
+    
+    # Validate service name format (alphanumeric, hyphens, underscores)
+    if [[ ! "$service_name" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        echo -e "${RED}Error: Invalid service name format: $service_name${NC}" >&2
+        return 1
+    fi
+    
+    return 0
 }
 
 # Start services
@@ -391,47 +477,85 @@ shift
 
 case "$command" in
     start)
-        start_services "$@"
-        ;;
-    stop)
-        stop_services
-        ;;
-    restart)
-        restart_services
-        ;;
-    status)
-        show_status
-        ;;
-    logs)
-        view_logs "$@"
-        ;;
-    update)
-        update_images
-        ;;
-    clean)
-        clean_up
-        ;;
-    check)
-        check_endpoints
-        ;;
-    pull-models)
-        pull_models
-        ;;
-    model)
-        start_model "$@"
-        ;;
-    secrets)
-        if [[ -f "scripts/mcp-stack-manager.sh" ]]; then
-            bash scripts/mcp-stack-manager.sh secrets "$@"
-        else
-            echo -e "${RED}Error: mcp-stack-manager.sh not found.${NC}"
-            exit 1
-        fi
-        ;;
-    *)
-        echo -e "${RED}Error: Unknown command '$command'.${NC}"
+# Main execution function with enhanced error handling
+main() {
+    # Validate environment first
+    validate_environment
+    load_environment
+    validate_secrets_mode
+    
+    # Check for arguments
+    if [[ $# -eq 0 ]]; then
+        echo -e "${RED}Error: No command specified.${NC}" >&2
         usage
-        ;;
-esac
+    fi
+    
+    local command="$1"
+    shift
+    
+    # Validate command input
+    if [[ -z "$command" ]]; then
+        echo -e "${RED}Error: Command cannot be empty.${NC}" >&2
+        usage
+    fi
+    
+    # Execute command with error handling
+    case "$command" in
+        start)
+            start_services "$@"
+            ;;
+        stop)
+            stop_services
+            ;;
+        restart)
+            restart_services
+            ;;
+        status)
+            show_status
+            ;;
+        logs)
+            view_logs "$@"
+            ;;
+        update)
+            update_images
+            ;;
+        clean)
+            clean_up
+            ;;
+        check)
+            check_endpoints
+            ;;
+        pull-models)
+            pull_models
+            ;;
+        model)
+            if [[ $# -eq 0 ]]; then
+                echo -e "${RED}Error: No model specified.${NC}" >&2
+                usage
+            fi
+            start_model "$@"
+            ;;
+        secrets)
+            if [[ -f "scripts/mcp-stack-manager.sh" ]]; then
+                bash scripts/mcp-stack-manager.sh secrets "$@"
+            else
+                echo -e "${RED}Error: mcp-stack-manager.sh not found.${NC}" >&2
+                exit 1
+            fi
+            ;;
+        help|--help|-h)
+            usage
+            ;;
+        version|--version|-v)
+            echo "Docker MCP Stack Management Script v1.0.0"
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}Error: Unknown command '$command'.${NC}" >&2
+            usage
+            ;;
+    esac
+}
 
-exit 0
+# Execute main function with all arguments
+main "$@"

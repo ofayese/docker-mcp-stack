@@ -22,7 +22,7 @@ npm install
 
 # Or using Make
 make lint-docs-install
-```
+```bash
 
 ### Usage
 
@@ -37,7 +37,7 @@ make lint-docs
 
 # Or using PowerShell script directly
 ./scripts/lint-docs.ps1 -Action check
-```
+```bash
 
 #### Auto-fix Issues
 
@@ -50,7 +50,7 @@ make lint-docs-fix
 
 # Or using PowerShell script
 ./scripts/lint-docs.ps1 -Action fix
-```
+```bash
 
 #### Generate Report
 
@@ -60,7 +60,7 @@ make lint-docs-report
 
 # Or using PowerShell script
 ./scripts/lint-docs.ps1 -Action report
-```
+```bash
 
 ## ⚙️ Configuration Details
 
@@ -134,7 +134,7 @@ To add or modify linting rules, edit `.markdownlint.json`:
     "line_length": 100
   }
 }
-```
+```bash
 
 ### Ignoring Files
 
@@ -144,7 +144,7 @@ To ignore additional files or directories, add them to `.markdownlintignore`:
 # Custom ignores
 temp-docs/
 *.draft.md
-```
+```bash
 
 ### Rule References
 
@@ -175,7 +175,7 @@ Add to your CI/CD pipeline:
   run: |
     npm install
     npm run lint:md
-```
+```bash
 
 #### Pre-commit Hook
 
@@ -184,7 +184,7 @@ Add to `.git/hooks/pre-commit`:
 ```bash
 #!/bin/sh
 npm run lint:md
-```
+```bash
 
 #### VS Code Integration
 
@@ -205,7 +205,7 @@ Run the help command for detailed usage information:
 
 ```bash
 ./scripts/lint-docs.ps1 -Action help
-```
+```bash
 
 ## 📚 Resources
 

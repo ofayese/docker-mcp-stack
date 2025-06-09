@@ -59,6 +59,9 @@ services:
       - models
     deploy:
       resources:
+        limits:
+          memory: ${MODEL_MEMORY_LIMIT:-4g}
+          cpus: '${MODEL_CPU_LIMIT:-2}'
         reservations:
           devices:
             - driver: nvidia
@@ -66,9 +69,14 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Phi-4 Model Runner
   phi4-runner:
@@ -85,6 +93,9 @@ services:
       - models
     deploy:
       resources:
+        limits:
+          memory: ${MODEL_MEMORY_LIMIT:-4g}
+          cpus: '${MODEL_CPU_LIMIT:-2}'
         reservations:
           devices:
             - driver: nvidia
@@ -92,9 +103,14 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Qwen3 Model Runner
   qwen3-runner:
@@ -111,6 +127,9 @@ services:
       - models
     deploy:
       resources:
+        limits:
+          memory: ${MODEL_MEMORY_LIMIT:-4g}
+          cpus: '${MODEL_CPU_LIMIT:-2}'
         reservations:
           devices:
             - driver: nvidia
@@ -118,9 +137,14 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Qwen2.5 Model Runner
   qwen2-runner:
@@ -137,6 +161,9 @@ services:
       - models
     deploy:
       resources:
+        limits:
+          memory: ${MODEL_MEMORY_LIMIT:-4g}
+          cpus: '${MODEL_CPU_LIMIT:-2}'
         reservations:
           devices:
             - driver: nvidia
@@ -144,9 +171,14 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Mistral Model Runner
   mistral-runner:
@@ -163,6 +195,9 @@ services:
       - models
     deploy:
       resources:
+        limits:
+          memory: ${MODEL_MEMORY_LIMIT:-4g}
+          cpus: '${MODEL_CPU_LIMIT:-2}'
         reservations:
           devices:
             - driver: nvidia
@@ -170,9 +205,14 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Gemma3 Model Runner
   gemma3-runner:
@@ -189,6 +229,9 @@ services:
       - models
     deploy:
       resources:
+        limits:
+          memory: ${MODEL_MEMORY_LIMIT:-4g}
+          cpus: '${MODEL_CPU_LIMIT:-2}'
         reservations:
           devices:
             - driver: nvidia
@@ -196,9 +239,14 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Granite 7B Lab Model Runner
   granite7-runner:
@@ -215,6 +263,9 @@ services:
       - models
     deploy:
       resources:
+        limits:
+          memory: ${MODEL_MEMORY_LIMIT:-4g}
+          cpus: '${MODEL_CPU_LIMIT:-2}'
         reservations:
           devices:
             - driver: nvidia
@@ -222,9 +273,14 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Granite 3 8B Instruct Model Runner
   granite3-runner:
@@ -241,6 +297,9 @@ services:
       - models
     deploy:
       resources:
+        limits:
+          memory: ${MODEL_MEMORY_LIMIT:-4g}
+          cpus: '${MODEL_CPU_LIMIT:-2}'
         reservations:
           devices:
             - driver: nvidia
@@ -248,9 +307,14 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:12434/engines/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   #
   # MCP SERVERS
@@ -293,7 +357,7 @@ services:
     image: mcp/postgres
     container_name: mcp-postgres-server
     environment:
-      POSTGRES_CONNECTION_STRING: "postgresql://${POSTGRES_USER:-mcp}:${POSTGRES_PASSWORD:-mcp_password}@postgres:5432/${POSTGRES_DB:-mcp}"
+      POSTGRES_CONNECTION_STRING: "postgresql://${POSTGRES_USER:-mcp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mcp}"
       # Security: Disable superuser creation
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     restart: unless-stopped
@@ -303,6 +367,16 @@ services:
     profiles:
       - basic
       - mcp
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "nc", "-z", "postgres", "5432"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # MCP Git Server - Provides Git operations
   mcp-git:
@@ -314,6 +388,16 @@ services:
     profiles:
       - basic
       - mcp
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "git", "--version"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
 
   # MCP SQLite Server - Provides SQLite database access
   mcp-sqlite:
@@ -325,49 +409,89 @@ services:
     profiles:
       - basic
       - mcp
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "sqlite3", "/data/test.db", ".tables"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
 
   # MCP GitHub Server - Provides GitHub API access
   mcp-github:
     image: mcp/github
     container_name: mcp-github
     environment:
-      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN:-your-github-token}"
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN}"
     restart: unless-stopped
     profiles:
       - github
       - mcp
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://api.github.com/rate_limit"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
 
   # MCP GitLab Server - Provides GitLab API access
   mcp-gitlab:
     image: mcp/gitlab
     container_name: mcp-gitlab
     environment:
-      GITLAB_PERSONAL_ACCESS_TOKEN: "${GITLAB_TOKEN:-your-gitlab-token}"
+      GITLAB_PERSONAL_ACCESS_TOKEN: "${GITLAB_TOKEN}"
     restart: unless-stopped
     profiles:
       - gitlab
       - mcp
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://gitlab.com/api/v4/user"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
 
   # MCP Sentry Server - Provides Sentry monitoring integration
   mcp-sentry:
     image: mcp/sentry
     container_name: mcp-sentry
     environment:
-      SENTRY_DSN: "${SENTRY_DSN:-your-sentry-dsn}"
+      SENTRY_DSN: "${SENTRY_DSN}"
     restart: unless-stopped
     profiles:
       - sentry
       - mcp
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://sentry.io/api/0/"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
 
   # MCP Everything Server - Combines capabilities of various MCP servers
   mcp-everything:
     image: mcp/everything
     container_name: mcp-everything
     environment:
-      POSTGRES_CONNECTION_STRING: "postgresql://${POSTGRES_USER:-mcp}:${POSTGRES_PASSWORD:-mcp_password}@postgres:5432/${POSTGRES_DB:-mcp}"
-      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN:-your-github-token}"
-      GITLAB_PERSONAL_ACCESS_TOKEN: "${GITLAB_TOKEN:-your-gitlab-token}"
-      SENTRY_DSN: "${SENTRY_DSN:-your-sentry-dsn}"
+      POSTGRES_CONNECTION_STRING: "postgresql://${POSTGRES_USER:-mcp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mcp}"
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN}"
+      GITLAB_PERSONAL_ACCESS_TOKEN: "${GITLAB_TOKEN}"
+      SENTRY_DSN: "${SENTRY_DSN}"
     volumes:
       - fs_data:/rootfs
       - git_data:/workspace
@@ -379,6 +503,11 @@ services:
     profiles:
       - everything
       - mcp
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: '1'
 
   #
   # INFRASTRUCTURE SERVICES
@@ -392,7 +521,7 @@ services:
     environment:
       POSTGRES_DB: "${POSTGRES_DB:-mcp}"
       POSTGRES_USER: "${POSTGRES_USER:-mcp}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-mcp_password}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       # Security: Disable superuser creation
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     ports:
@@ -450,11 +579,42 @@ services:
     profiles:
       - web
       - infrastructure
+    # Security: Run as non-root user
+    user: "101:101"
+    # Security: Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.5'
+        reservations:
+          memory: 128m
+          cpus: '0.25'
+    # Security: Read-only root filesystem
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    # Security: Drop unnecessary capabilities
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "${LOG_MAX_SIZE:-10m}"
+        max-file: "${LOG_MAX_FILES:-3}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-3}
 
   #
   # MONITORING SERVICES
@@ -476,14 +636,44 @@ services:
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}'
+      - '--web.enable-admin-api'
     restart: unless-stopped
     profiles:
       - monitoring
+    # Security: Run as non-root user
+    user: "65534:65534"
+    # Security: Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: '1'
+        reservations:
+          memory: 512m
+          cpus: '0.5'
+    # Security: Read-only root filesystem where possible
+    read_only: true
+    tmpfs:
+      - /tmp
+    # Security: Drop unnecessary capabilities
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "${LOG_MAX_SIZE:-10m}"
+        max-file: "${LOG_MAX_FILES:-3}"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-3}
 
   # Grafana - Visualization
   grafana:
@@ -496,18 +686,46 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SECURITY_STRICT_TRANSPORT_SECURITY=true
+      - GF_LOG_LEVEL=${GRAFANA_LOG_LEVEL:-info}
     restart: unless-stopped
     depends_on:
       - prometheus
     profiles:
       - monitoring
+    # Security: Run as non-root user
+    user: "472:472"
+    # Security: Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+        reservations:
+          memory: 256m
+          cpus: '0.25'
+    # Security: Drop unnecessary capabilities
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "${LOG_MAX_SIZE:-10m}"
+        max-file: "${LOG_MAX_FILES:-3}"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-3}
 
   # Node Exporter - System metrics
   node-exporter:
@@ -517,6 +735,16 @@ services:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--web.disable-exporter-metrics'
+      - '--collector.disable-defaults'
+      - '--collector.cpu'
+      - '--collector.diskstats'
+      - '--collector.filesystem'
+      - '--collector.loadavg'
+      - '--collector.meminfo'
+      - '--collector.netdev'
+      - '--collector.time'
+      - '--collector.uname'
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -524,11 +752,33 @@ services:
     restart: unless-stopped
     profiles:
       - monitoring
+    # Security: Run as non-root user
+    user: "65534:65534"
+    # Security: Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+        reservations:
+          memory: 64m
+          cpus: '0.1'
+    # Security: Read-only root filesystem
+    read_only: true
+    # Security: Drop unnecessary capabilities
+    cap_drop:
+      - ALL
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "${LOG_MAX_SIZE:-10m}"
+        max-file: "${LOG_MAX_FILES:-3}"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9100/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-3}
 
 volumes:
   # Model data

@@ -37,7 +37,7 @@ make lint-docs-fix
 
 # Generate report
 make lint-docs-report
-```
+```bash
 
 ### NPM Scripts
 
@@ -46,7 +46,7 @@ npm run lint:md        # Check markdown files
 npm run lint:md:fix    # Auto-fix issues
 npm run docs:check     # Alias for checking
 npm run docs:fix       # Alias for fixing
-```
+```bash
 
 ### PowerShell Script
 
@@ -55,7 +55,7 @@ npm run docs:fix       # Alias for fixing
 .\scripts\lint-docs.ps1 -Action fix
 .\scripts\lint-docs.ps1 -Action report
 .\scripts\lint-docs.ps1 -Action help
-```
+```bash
 
 ## 🔧 Configuration Highlights
 
@@ -90,4 +90,5 @@ npm run docs:fix       # Alias for fixing
 3. Review and fix existing markdown files using `make lint-docs-fix`
 4. Customize rules in `.markdownlint.json` as needed
 
-The markdownlint setup is now complete and ready to ensure high-quality documentation across your Docker MCP Stack project!
+The markdownlint setup is now complete and
+ready to ensure high-quality documentation across your Docker MCP Stack project!
